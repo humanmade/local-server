@@ -290,7 +290,6 @@ EOT
 			echo $buffer;
 		} );
 
-
 		if ( $service === '' ) {
 			$proxy = new Process( 'docker-compose -f proxy.yml stop', 'vendor/altis/local-server/docker' );
 			$proxy->run( function ( $type, $buffer ) {
