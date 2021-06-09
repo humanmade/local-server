@@ -146,6 +146,7 @@ EOT
 			'COMPOSE_PROJECT_NAME' => $this->get_project_subdomain(),
 			'PATH' => getenv( 'PATH' ),
 			'ES_MEM_LIMIT' => getenv( 'ES_MEM_LIMIT' ) ?: '1g',
+			'PHP_IMAGE' => getenv( 'PHP_IMAGE' ) ?: 'humanmade/altis-local-server-php:3.2.0',
 		];
 	}
 
@@ -173,7 +174,8 @@ EOT
 
 		$env = $this->get_env();
 		if ( $input->getOption( 'xdebug' ) ) {
-			$env['PHP_IMAGE'] = 'humanmade/altis-local-server-php:3.2.0-dev';
+			$env['PHP_IMAGE'] = isset( $env['PHP_IMAGE'] ) ?
+				$env['PHP_IMAGE'] . '-dev' : 'humanmade/altis-local-server-php:3.2.0-dev';
 			if ( $this->is_linux() ) {
 				$env['XDEBUG_REMOTE_HOST'] = '172.17.0.1';
 			}
