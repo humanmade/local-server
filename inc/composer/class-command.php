@@ -53,9 +53,9 @@ Default command - start the local development server:
 	                              Passing --mutagen will start the server using Mutagen
 	                              for file sharing.
 Stop the local development server:
-	stop
+	stop [<service>]
 Restart the local development server:
-	restart [--xdebug=<mode>]     passing --xdebug restarts the server with xdebug enabled
+	restart [--xdebug=<mode>] [<service>]     passing --xdebug restarts the server with xdebug enabled
 Destroy the local development server:
 	destroy
 View status of the local development server:
@@ -278,20 +278,29 @@ EOT
 	protected function stop( InputInterface $input, OutputInterface $output ) {
 		$output->writeln( '<info>Stopping...</>' );
 
-		$compose = new Process( $this->get_compose_command( 'stop' ), 'vendor', $this->get_env() );
+		$options = $input->getArgument( 'options' );
+		if ( isset( $options[0] ) ) {
+			$service = $options[0];
+		} else {
+			$service = '';
+		}
+
+		$compose = new Process( $this->get_compose_command( "stop $service" ), 'vendor', $this->get_env() );
 		$return_val = $compose->run( function ( $type, $buffer ) {
 			echo $buffer;
 		} );
 
-		$proxy = new Process( 'docker-compose -f proxy.yml stop', 'vendor/altis/local-server/docker' );
-		$proxy->run( function ( $type, $buffer ) {
-			echo $buffer;
-		} );
+		if ( $service === '' ) {
+			$proxy = new Process( 'docker-compose -f proxy.yml stop', 'vendor/altis/local-server/docker' );
+			$proxy->run( function ( $type, $buffer ) {
+				echo $buffer;
+			} );
+		}
 
 		if ( $return_val === 0 ) {
 			$output->writeln( '<info>Stopped.</>' );
 		} else {
-			$output->writeln( '<error>Failed to stop services.</>' );
+			$output->writeln( '<error>Failed to stop service(s).</>' );
 		}
 
 		return $return_val;
