@@ -63,11 +63,11 @@ class Docker_Compose_Generator {
 	 * @param string $root_dir The project root directory.
 	 * @param array $args An optional array of arguments to modify the behaviour of the generator.
 	 */
-	public function __construct( string $project_name, string $root_dir, array $args = [] ) {
+	public function __construct( string $project_name, string $root_dir, string $tld, array $args = [] ) {
 		$this->project_name = $project_name;
 		$this->root_dir = $root_dir;
 		$this->config_dir = dirname( __DIR__, 2 ) . '/docker';
-		$this->tld = 'altis.dev';
+		$this->tld = $tld;
 		$this->hostname = $this->project_name . '.' . $this->tld;
 		$this->args = $args;
 	}
@@ -129,16 +129,16 @@ class Docker_Compose_Generator {
 				'ELASTICSEARCH_HOST' => 'elasticsearch',
 				'ELASTICSEARCH_PORT' => 9200,
 				'AWS_XRAY_DAEMON_HOST' => 'xray',
-				'S3_UPLOADS_ENDPOINT' => "https://{$this->tld}/",
+				'S3_UPLOADS_ENDPOINT' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://{$this->tld}/",
 				'S3_UPLOADS_BUCKET' => "s3-{$this->project_name}",
-				'S3_UPLOADS_BUCKET_URL' => "https://s3-{$this->hostname}",
+				'S3_UPLOADS_BUCKET_URL' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://s3-{$this->hostname}",
 				'S3_UPLOADS_KEY' => 'admin',
 				'S3_UPLOADS_SECRET' => 'password',
 				'S3_UPLOADS_REGION' => 'us-east-1',
-				'TACHYON_URL' => "https://{$this->hostname}/tachyon",
+				'TACHYON_URL' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://{$this->hostname}/tachyon",
 				'PHP_SENDMAIL_PATH' => '/usr/sbin/sendmail -t -i -S mailhog:1025',
-				'ALTIS_ANALYTICS_PINPOINT_ENDPOINT' => "https://pinpoint-{$this->hostname}",
-				'ALTIS_ANALYTICS_COGNITO_ENDPOINT' => "https://cognito-{$this->hostname}",
+				'ALTIS_ANALYTICS_PINPOINT_ENDPOINT' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://pinpoint-{$this->hostname}",
+				'ALTIS_ANALYTICS_COGNITO_ENDPOINT' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://cognito-{$this->hostname}",
 				// Enables XDebug for all processes and allows setting remote_host externally for Linux support.
 				'XDEBUG_CONFIG' => sprintf( 'client_host=%s', Command::is_linux() ? '172.17.0.1' : 'host.docker.internal' ),
 				'PHP_IDE_CONFIG' => "serverName={$this->hostname}",
@@ -393,7 +393,7 @@ class Docker_Compose_Generator {
 					'default',
 				],
 				'environment' => [
-					'MINIO_DOMAIN' => 's3.localhost,altis.dev,s3',
+					'MINIO_DOMAIN' => 's3.localhost,' . $this->tld . ',s3',
 					'MINIO_REGION_NAME' => 'us-east-1',
 					'MINIO_ACCESS_KEY' => 'admin',
 					'MINIO_SECRET_KEY' => 'password',
@@ -459,7 +459,7 @@ class Docker_Compose_Generator {
 				'environment' => [
 					'AWS_REGION' => 'us-east-1',
 					'AWS_S3_BUCKET' => "s3-{$this->project_name}",
-					'AWS_S3_ENDPOINT' => "https://{$this->tld}/",
+					'AWS_S3_ENDPOINT' => 'http' . ( $this->args['secure'] ? 's' : '' ) . "://{$this->tld}/",
 				],
 				'external_links' => [
 					"proxy:s3-{$this->hostname}",
